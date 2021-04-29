@@ -1,0 +1,88 @@
+if has("gui_running")
+  set lines=9999
+  set columns=9999
+  set guifont=Inconsolata\ XL:h12,Inconsolata:h12,Monaco:h12
+endif
+
+"set wrap       "Don't wrap lines
+set showbreak=...
+set wrap linebreak nolist
+
+"key mapping for tab navigation
+nmap <Tab> gt
+nmap <S-Tab> gT
+
+"Scrolling
+set scrolloff=3
+set sidescrolloff=5
+
+"Right scrollbar
+set guioptions+=r
+
+"RSpec.vim mappings
+map <Leader>sc :RunItermSpec<CR>
+map <Leader>sn :RunItermSpecLine<CR>
+"From https://github.com/thoughtbot/vim-rspec plugin
+" map <Leader>sc :call RunCurrentSpecFile()<CR>
+" map <Leader>sn :call RunNearestSpec()<CR>
+" map <Leader>sl :call RunLastSpec()<CR>
+" map <Leader>sa :call RunAllSpecs()<CR>
+
+"Transposing
+function! MoveLineUp()
+  call MoveLineOrVisualUp(".", "")
+endfunction
+
+function! MoveLineDown()
+  call MoveLineOrVisualDown(".", "")
+endfunction
+
+function! MoveVisualUp()
+  call MoveLineOrVisualUp("'<", "'<,'>")
+  normal gv
+endfunction
+
+function! MoveVisualDown()
+  call MoveLineOrVisualDown("'>", "'<,'>")
+  normal gv
+endfunction
+
+function! MoveLineOrVisualUp(line_getter, range)
+  let l_num = line(a:line_getter)
+  if l_num - v:count1 - 1 < 0
+    let move_arg = "0"
+  else
+    let move_arg = a:line_getter." -".(v:count1 + 1)
+  endif
+  call MoveLineOrVisualUpOrDown(a:range."move ".move_arg)
+endfunction
+
+function! MoveLineOrVisualDown(line_getter, range)
+  let l_num = line(a:line_getter)
+  if l_num + v:count1 > line("$")
+    let move_arg = "$"
+  else
+    let move_arg = a:line_getter." +".v:count1
+  endif
+  call MoveLineOrVisualUpOrDown(a:range."move ".move_arg)
+endfunction
+
+function! MoveLineOrVisualUpOrDown(move_arg)
+  let col_num = virtcol(".")
+  execute "silent! ".a:move_arg
+  execute "normal! ".col_num."|"
+endfunction
+
+nnoremap <silent> <S-Up> :<C-u>call MoveLineUp()<CR>
+nnoremap <silent> <S-Down> :<C-u>call MoveLineDown()<CR>
+inoremap <silent> <S-Up> <C-o>:<C-u>call MoveLineUp()<CR>
+inoremap <silent> <S-Down> <C-o>:<C-u>call MoveLineDown()<CR>
+vnoremap <silent> <S-Up> :<C-u>call MoveVisualUp()<CR>
+vnoremap <silent> <S-Down> :<C-u>call MoveVisualDown()<CR>
+
+"Replace hashrockets to new hash syntax
+function! ReplaceHashRockets()
+  :%s/:\(\w\+\)\(\s*\)=>\s*/\1:\2/g
+endfunction
+
+map <Leader>ha :call ReplaceHashRockets()<CR>
